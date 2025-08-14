@@ -217,13 +217,17 @@ class Brand(TimeStampedModel):
 class Product(TimeStampedModel):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="products")
     name = models.CharField(max_length=200)
-    sku_base = models.SlugField(max_length=60, help_text="Base/parent SKU")
+    sku_base = models.SlugField(max_length=60, help_text="Base/parent SKU" , null=True, blank=True)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL, related_name="products")
     brand = models.ForeignKey(Brand, null=True, blank=True, on_delete=models.SET_NULL, related_name="products")
-    base_uom = models.ForeignKey(UnitOfMeasure, on_delete=models.PROTECT, related_name="products")
+    base_uom = models.ForeignKey(UnitOfMeasure, on_delete=models.PROTECT, related_name="products", null=True, blank=True)
     track_serials = models.BooleanField(default=False)
     track_lots = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    description = models.TextField(blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2 , default=Decimal('0.00'), help_text="Base price for the product")
+    quantity = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ("organization", "sku_base")
