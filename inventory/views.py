@@ -13,6 +13,11 @@ from django.shortcuts import render
 from .models import *
 from .serializers import *
 from .services.inventory import post_goods_receipt_line, post_shipment_line, post_transfer_line, close_and_post_stock_count
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Product, Sale
+from .forms import ProductForm, SaleForm
+from reportlab.pdfgen import canvas
+
 
 class BaseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -158,20 +163,20 @@ class InventoryTransactionViewSet(BaseViewSet):
 # inventory/views.py
 
 
-def product_list(request):
-    search_query = request.GET.get('q', '')
-    products = Product.objects.all()
+# def product_list(request):
+#     search_query = request.GET.get('q', '')
+#     products = Product.objects.all()
 
-    if search_query:
-        products = products.filter(
-            Q(name__icontains=search_query) | Q(description__icontains=search_query)
-        )
+#     if search_query:
+#         products = products.filter(
+#             Q(name__icontains=search_query) | Q(description__icontains=search_query)
+#         )
 
-    paginator = Paginator(products, 10)  # Show 10 products per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+#     paginator = Paginator(products, 10)  # Show 10 products per page
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'product_list.html', {'page_obj': page_obj, 'search_query': search_query})
+#     return render(request, 'product_list.html', {'page_obj': page_obj, 'search_query': search_query})
 
 
 
@@ -195,3 +200,68 @@ def sale_receipt_pdf(request, sale_id):
     p.save()
     return response
 
+
+
+# Product List with Search & Pagination
+def product_list(request):
+    query = request.GET.get('q')
+    products = Product.objects.all()
+
+    if query:
+        products = products.filter(name__icontains=query)
+
+    paginator = Paginator(products, 10)  # Show 10 products per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'inventory/product_list.html', {'page_obj': page_obj, 'query': query})
+
+# Add Product
+def add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm()
+    return render(request, 'inventory/add_product.html', {'form': form})
+
+# Record Sale + Generate PDF Receipt
+def record_sale(request):
+    if request.method == 'POST':
+        form = SaleForm(request.POST)
+        if form.is_valid():
+            sale = form.save()
+            return redirect('generate_receipt', sale_id=sale.id)
+    else:
+        form = SaleForm()
+    return render(request, 'inventory/record_sale.html', {'form': form})
+
+# Generate PDF Receipt
+def generate_receipt(request, sale_id):
+    sale = get_object_or_404(Sale, id=sale_id)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="receipt_{sale.id}.pdf"'
+
+    p = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(200, height - 50, "Sales Receipt")
+
+    p.setFont("Helvetica", 12)
+    p.drawString(50, height - 100, f"Receipt ID: {sale.id}")
+    p.drawString(50, height - 120, f"Date: {sale.date}")
+    p.drawString(50, height - 140, f"Product: {sale.product.name}")
+    p.drawString(50, height - 160, f"Quantity: {sale.quantity}")
+    p.drawString(50, height - 180, f"Unit Price: {sale.product.price}")
+    p.drawString(50, height - 200, f"Total: {sale.total_price}")
+
+    p.setFont("Helvetica-Oblique", 10)
+    p.drawString(50, height - 240, "Thank you for your purchase!")
+
+    p.showPage()
+    p.save()
+
+    return response

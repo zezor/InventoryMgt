@@ -43,6 +43,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from decimal import Decimal
 
 
 # ----------------------------
@@ -586,4 +587,39 @@ class Price(TimeStampedModel):
 
     def __str__(self):
         return f"{self.variant.sku} @ {self.unit_price}"
+    
+    
+class Sale(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='sales')
+    quantity = models.PositiveIntegerField()
+    price_at_sale = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+    date_sold = models.DateTimeField(default=timezone.now)
+    sold_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='sales'
+    )
+    customer_name = models.CharField(max_length=100, blank=True, null=True)
+    customer_contact = models.CharField(max_length=50, blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        # Automatically calculate total price before saving
+        if not self.price_at_sale:
+            self.price_at_sale = self.product.price
+        self.total_price = Decimal(self.quantity) * self.price_at_sale
+
+        # Reduce stock from product
+        if self.pk is None:  # Only deduct stock on first save
+            self.product.stock_quantity -= self.quantity
+            self.product.save()
+
+        super(Sale, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Sale of {self.quantity} x {self.product.name} on {self.date_sold.strftime('%Y-%m-%d')}"
+
+    class Meta:
+        ordering = ['-date_sold']
