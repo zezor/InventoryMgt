@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 
     # Local apps
     'inventory',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -145,3 +146,5 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ],
 }
+
+AUTH_USER_MODEL = "accounts.CustomUser"
