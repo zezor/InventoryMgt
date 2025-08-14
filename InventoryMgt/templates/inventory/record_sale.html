@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Record Sale{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-3">Record Sale</h1>
+  <div class="card">
+    <div class="card-body">
+      <form method="post" id="sale-form">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">{{ sale_form.customer_name.label_tag }} {{ sale_form.customer_name }}</div>
+        </div>
+
+        <hr class="my-4" />
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Items</h5>
+          <button type="button" class="btn btn-sm btn-outline-primary" id="add-row">Add Item</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle" id="items-table">
+            <thead class="table-light">
+              <tr>
+                <th style="width:55%">Product</th>
+                <th style="width:20%">Quantity</th>
+                <th class="text-end" style="width:20%">Unit Price</th>
+                <th style="width:5%"></th>
+              </tr>
+            </thead>
+            <tbody id="items-body">
+              <tr class="item-row">
+                <td>
+                  <select name="product" class="form-select">
+                    {% for p in products %}
+                      <option value="{{ p.id }}" data-price="{{ p.unit_price }}" data-stock="{{ p.quantity }}">{{ p.name }} ({{ p.sku }}) — In stock: {{ p.quantity }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td><input type="number" min="1" name="quantity" class="form-control" value="1" /></td>
+                <td class="text-end align-middle unit-price">0.00</td>
+                <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger remove-row">×</button></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="2"></th>
+                <th class="text-end">Total: <span id="grand-total">0.00</span></th>
+                <th></th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-success">Save Sale</button>
+          <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const fmt = n => (Number(n)||0).toFixed(2);
+
+  function updateRowPrice(tr){
+    const select = tr.querySelector('select[name="product"]');
+    const qty = parseFloat(tr.querySelector('input[name="quantity"]').value || 0);
+    const price = parseFloat(select.selectedOptions[0].dataset.price || 0);
+    const stock = parseFloat(select.selectedOptions[0].dataset.stock || 0);
+    if (qty > stock) { tr.querySelector('input[name="quantity"]').value = stock || 0; }
+    tr.querySelector('.unit-price').textContent = fmt(price * (parseFloat(tr.querySelector('input[name="quantity"]').value)||0));
+    updateGrandTotal();
+  }
+
+  function updateGrandTotal(){
+    let sum = 0;
+    document.querySelectorAll('#items-body .item-row').forEach(tr => {
+      const cell = tr.querySelector('.unit-price')

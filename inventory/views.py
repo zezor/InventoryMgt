@@ -3,6 +3,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
+from django.core.paginator import Paginator
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+import datetime
+from django.db.models import Q
+from django.shortcuts import render
 from .models import *
 from .serializers import *
 from .services.inventory import post_goods_receipt_line, post_shipment_line, post_transfer_line, close_and_post_stock_count
@@ -145,3 +152,46 @@ class InventoryTransactionViewSet(BaseViewSet):
     serializer_class = InventoryTransactionSerializer
     filterset_fields = ["variant", "type", "warehouse_from", "warehouse_to"]
     ordering_fields = ["occurred_at"]
+    
+    
+    
+# inventory/views.py
+
+
+def product_list(request):
+    search_query = request.GET.get('q', '')
+    products = Product.objects.all()
+
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) | Q(description__icontains=search_query)
+        )
+
+    paginator = Paginator(products, 10)  # Show 10 products per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'product_list.html', {'page_obj': page_obj, 'search_query': search_query})
+
+
+
+
+
+def sale_receipt_pdf(request, sale_id):
+    sale = Sale.objects.get(id=sale_id)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="receipt_{sale.id}.pdf"'
+
+    p = canvas.Canvas(response, pagesize=A4)
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(200, 800, "SALES RECEIPT")
+    p.setFont("Helvetica", 12)
+    p.drawString(50, 770, f"Date: {datetime.date.today().strftime('%Y-%m-%d')}")
+    p.drawString(50, 750, f"Product: {sale.product.name}")
+    p.drawString(50, 730, f"Quantity Sold: {sale.quantity_sold}")
+    p.drawString(50, 710, f"Unit Price: GHS {sale.product.price}")
+    p.drawString(50, 690, f"Total: GHS {sale.total_price}")
+    p.showPage()
+    p.save()
+    return response
+

@@ -30,4 +30,7 @@ router.register(r'inventory-transactions', views.InventoryTransactionViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    
+    path('products/', views.product_list, name='product_list'),
+    path('sale/<int:sale_id>/receipt/', views.sale_receipt_pdf, name='sale_receipt_pdf'),
 ]

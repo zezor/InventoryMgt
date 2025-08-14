@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard · Inventory{% endblock %}
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between">
+    <h1 class="h3 mb-3">Dashboard</h1>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="display-6">{{ total_products }}</div>
+          <div class="text-muted">Products</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="display-6">{{ total_items_sold }}</div>
+          <div class="text-muted">Items Sold</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="display-6">{{ total_sales|floatformat:2 }}</div>
+          <div class="text-muted">Total Revenue</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-header fw-semibold">Quick Actions</div>
+    <div class="card-body">
+      <a href="{% url 'add_product' %}" class="btn btn-primary me-2">Add Product</a>
+      <a href="{% url 'record_sale' %}" class="btn btn-success me-2">Record Sale</a>
+      <a href="{% url 'sales_report' %}" class="btn btn-outline-secondary">View Sales Report</a>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+    // Additional JavaScript can be added here if needed
+  </script>
+{% endblock %}
