@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Sales{% endblock %}
+{% block content %}
+<h2>Sales Transactions</h2>
+<a href="{% url 'sale_create' %}" class="btn btn-primary mb-3">New Sale</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Total Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sale in sales %}
+        <tr>
+            <td>{{ sale.date }}</td>
+            <td>{{ sale.product.name }}</td>
+            <td>{{ sale.quantity }}</td>
+            <td>${{ sale.total_price }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No sales recorded yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
