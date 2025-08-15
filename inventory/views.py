@@ -265,3 +265,29 @@ def generate_receipt(request, sale_id):
     p.save()
 
     return response
+
+
+def dashboard(request):
+    return render(request, 'dashboard.html')
+
+
+def sales_report(request):
+    return render(request, 'sales_report.html')
+
+def logout_view(request):
+    from django.contrib.auth import logout
+    logout(request)
+    return redirect('login')  # Redirect to login page after logout
+
+def login_view(request):
+    from django.contrib.auth import authenticate, login
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, email=email, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')  # Redirect to dashboard after login
+        else:
+            return render(request, 'auth/login.html', {'error': 'Invalid credentials'})
+    return render(request, 'auth/login.html')
