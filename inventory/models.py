@@ -226,7 +226,7 @@ class Product(TimeStampedModel):
     is_active = models.BooleanField(default=True)
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2 , default=Decimal('0.00'), help_text="Base price for the product")
-    quantity = models.PositiveIntegerField(default=0)
+    stock_quantity = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

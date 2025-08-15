@@ -204,7 +204,7 @@ def sale_receipt_pdf(request, sale_id):
 
 # Product List with Search & Pagination
 def product_list(request):
-    query = request.GET.get('q')
+    query = request.GET.get('q', '')
     products = Product.objects.all()
 
     if query:
@@ -214,21 +214,26 @@ def product_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'inventory/product_list.html', {'page_obj': page_obj, 'query': query})
+    return render(request, 'inventory/product_list.html', {'page_obj': page_obj, 'query': query, 'products': products})
 
 # Add Product
 def add_product(request):
+    products = Product.objects.all()
     if request.method == 'POST':
         form = ProductForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('product_list')
+        try:
+            if form.is_valid():
+                form.save()
+                return redirect('product_list')
+        except Exception as e:
+            print(f"Error occurred: {e}")
     else:
         form = ProductForm()
-    return render(request, 'inventory/add_product.html', {'form': form})
+    return render(request, 'inventory/add_product.html', {'form': form, 'products': products})
 
 # Record Sale + Generate PDF Receipt
 def record_sale(request):
+    products = Product.objects.all()
     if request.method == 'POST':
         form = SaleForm(request.POST)
         if form.is_valid():
@@ -236,7 +241,7 @@ def record_sale(request):
             return redirect('generate_receipt', sale_id=sale.id)
     else:
         form = SaleForm()
-    return render(request, 'inventory/record_sale.html', {'form': form})
+    return render(request, 'inventory/record_sale.html', {'form': form, 'products': products})
 
 # Generate PDF Receipt
 def generate_receipt(request, sale_id):

@@ -62,23 +62,50 @@
 {% block extra_js %}
 <script>
 (function() {
-  const fmt = n => (Number(n)||0).toFixed(2);
+  const fmt = n => (Number(n) || 0).toFixed(2);
 
-  function updateRowPrice(tr){
+  function updateRowPrice(tr) {
     const select = tr.querySelector('select[name="product"]');
     const qty = parseFloat(tr.querySelector('input[name="quantity"]').value || 0);
     const price = parseFloat(select.selectedOptions[0].dataset.price || 0);
     const stock = parseFloat(select.selectedOptions[0].dataset.stock || 0);
-    if (qty > stock) { tr.querySelector('input[name="quantity"]').value = stock || 0; }
-    tr.querySelector('.unit-price').textContent = fmt(price * (parseFloat(tr.querySelector('input[name="quantity"]').value)||0));
+
+    // Prevent quantity from exceeding stock
+    if (qty > stock) { 
+      tr.querySelector('input[name="quantity"]').value = stock || 0; 
+    }
+
+    // Update row total
+    tr.querySelector('.unit-price').textContent = fmt(
+      price * (parseFloat(tr.querySelector('input[name="quantity"]').value) || 0)
+    );
+
     updateGrandTotal();
   }
 
-  function updateGrandTotal(){
+  function updateGrandTotal() {
     let sum = 0;
     document.querySelectorAll('#items-body .item-row').forEach(tr => {
-      const cell = tr.querySelector('.unit-price')
+      const cell = tr.querySelector('.unit-price');
+      sum += parseFloat(cell.textContent) || 0;
+    });
 
+    // Update grand total on the page
+    const totalElement = document.querySelector('#grand-total');
+    if (totalElement) {
+      totalElement.textContent = fmt(sum);
     }
   }
-})
+
+  // Event listener for quantity or product changes
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('select[name="product"], input[name="quantity"]')) {
+      const tr = e.target.closest('.item-row');
+      updateRowPrice(tr);
+    }
+  });
+
+})();
+</script>
+
+{% endblock %}
