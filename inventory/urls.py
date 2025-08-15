@@ -29,7 +29,7 @@ router.register(r'stock-count-lines', views.StockCountLineViewSet)
 router.register(r'inventory-transactions', views.InventoryTransactionViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('api/', include(router.urls)),
     path('', include('accounts.urls')),  # Include accounts app URLs
   
     path('sale/<int:sale_id>/receipt/', views.sale_receipt_pdf, name='sale_receipt_pdf'),

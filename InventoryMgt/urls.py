@@ -19,6 +19,8 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('inventory.urls')),
+    path('inventory/', include('inventory.urls')),  # include inventory routes
+    path('inventory/', include(('inventory.urls', 'inventory'), namespace='inventory')), 
     path('accounts/', include('accounts.urls')),
+    path('', include('inventory.urls')),  # Redirect root to inventory app
 ]

@@ -16,7 +16,7 @@ from .services.inventory import post_goods_receipt_line, post_shipment_line, pos
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product, Sale
 from .forms import ProductForm, SaleForm
-from reportlab.pdfgen import canvas
+
 
 
 class BaseViewSet(viewsets.ModelViewSet):
