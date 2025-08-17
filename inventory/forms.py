@@ -9,11 +9,11 @@ from .models import Product, Sale
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'description', 'quantity', 'price']
+        fields = ['name', 'description', 'stock_quantity', 'price']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter product name'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter product description'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'stock_quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
 
